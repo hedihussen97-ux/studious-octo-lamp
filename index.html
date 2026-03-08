@@ -151,3 +151,134 @@
     </script>
 </body>
               </html>
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brothers Cup Pro 🏆</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --p: #00d2ff; --bg: #0b0f19; --card: #161e2d; --white: #ffffff; }
+        body { font-family: 'Tahoma', sans-serif; background: var(--bg); color: var(--white); margin: 0; padding-bottom: 90px; }
+        .page { display: none; padding: 20px; animation: fadeIn 0.4s; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .match-card { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid #2d3748; }
+        .teams-grid { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; text-align: center; }
+        .team img { width: 45px; height: 45px; }
+        .odds-row { display: flex; gap: 8px; margin-top: 15px; }
+        .odd-btn { flex: 1; background: #1f2937; padding: 10px; border-radius: 12px; cursor: pointer; border: 2px solid transparent; text-align: center; }
+        .odd-btn.selected { border-color: var(--p); background: rgba(0, 210, 255, 0.1); }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #111827; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #1f2937; }
+        .nav-btn { color: #64748b; cursor: pointer; font-size: 0.9rem; }
+        .nav-btn.active { color: var(--p); font-weight: bold; }
+        .rank-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #2d3748; }
+    </style>
+</head>
+<body>
+
+    <div id="home" class="page active">
+        <h2 style="text-align:center; color:var(--p)">پڕۆفایلی یاریزان 👤</h2>
+        <div class="match-card" style="text-align:center">
+            <div id="uAvatar" style="width:70px; height:70px; background:var(--p); border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#000">?</div>
+            <h3 id="uNameDisplay">میوان</h3>
+            <div id="setupForm">
+                <input type="text" id="nameInp" placeholder="ناوەکەت بنووسە..." style="width:80%; padding:10px; border-radius:8px; border:none; background:#1f2937; color:white;">
+                <button onclick="saveUser()" style="width:85%; padding:10px; background:var(--p); border:none; border-radius:8px; margin-top:10px; font-weight:bold;">چوونە ژوورەوە</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="predict" class="page">
+        <h2 style="color:var(--p)">⚽ پێشبینییەکان</h2>
+        <div id="matchList"></div>
+    </div>
+
+    <div id="ranks" class="page">
+        <h2 style="color:var(--p)">📊 ڕیزبەندی گشتی</h2>
+        <div class="match-card" id="rankList">کەمێک چاوەڕێ بکە...</div>
+    </div>
+
+    <div class="nav">
+        <div class="nav-btn active" onclick="showPage('home', this)">پڕۆفایل</div>
+        <div class="nav-btn" onclick="showPage('predict', this)">پێشبینی</div>
+        <div class="nav-btn" onclick="showPage('ranks', this)">ڕیزبەندی</div>
+    </div>
+
+    <script>
+        // زانیارییەکانی Supabase - من لینکی پڕۆژەکەتم بۆ پڕکردیتەوە
+        const SB_URL = "https://B4ommmZx0sf4iWMujMTtcQ.supabase.co"; 
+        const SB_KEY = "sb_publishable_B4ommmZx0sf4iWMujMTtcQ_C3lap4ZI";
+        const supabase = supabase.createClient(SB_URL, SB_KEY);
+
+        const matches = [
+            { id: "M1", t1: "وێستهام", logo1: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", t2: "برێنتفۆرد", logo2: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg", odds: {t1:3, x:2, t2:2} },
+            { id: "M2", t1: "ئینتەرمیلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", t2: "ئەیسی میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", odds: {t1:2, x:3, t2:4} }
+            // دەتوانیت یارییەکانی تریش لێرە زیاد بکەیت
+        ];
+
+        async function saveUser() {
+            const name = document.getElementById('nameInp').value;
+            if(name) {
+                localStorage.setItem('user', name);
+                location.reload();
+            }
+        }
+
+        async function makeP(mId, choice) {
+            const user = localStorage.getItem('user');
+            if(!user) return alert("سەرەتا ناوەکەت بنووسە!");
+
+            const { data, error } = await supabase
+                .from('predictions')
+                .upsert({ user_name: user, match_id: mId, prediction: choice }, { onConflict: 'user_name,match_id' });
+
+            if(error) alert("هەڵەیەک ڕوویدا!");
+            else { alert("تۆمارکرا! ✅"); render(); }
+        }
+
+        function render() {
+            const list = document.getElementById('matchList');
+            list.innerHTML = "";
+            matches.forEach(m => {
+                list.innerHTML += `
+                    <div class="match-card">
+                        <div class="teams-grid">
+                            <div class="team"><img src="${m.logo1}"><span>${m.t1}</span></div>
+                            <div>VS</div>
+                            <div class="team"><img src="${m.logo2}"><span>${m.t2}</span></div>
+                        </div>
+                        <div class="odds-row">
+                            <div class="odd-btn" onclick="makeP('${m.id}','t1')">بردنەوەی ١</div>
+                            <div class="odd-btn" onclick="makeP('${m.id}','x')">یەکسان</div>
+                            <div class="odd-btn" onclick="makeP('${m.id}','t2')">بردنەوەی ٢</div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function loadRanks() {
+            const { data, error } = await supabase.from('predictions').select('*');
+            if(data) {
+                const rList = document.getElementById('rankList');
+                rList.innerHTML = "لێرەدا ناوی برادەران و پێشبینییەکانیان دەبینیت...";
+                // لێرە دەتوانیت کۆدی حسابکردنی خاڵەکان دابنێیت
+            }
+        }
+
+        window.showPage = (id, btn) => {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'ranks') loadRanks();
+        };
+
+        const u = localStorage.getItem('user');
+        if(u) {
+            document.getElementById('uNameDisplay').innerText = u;
+            document.getElementById('setupForm').style.display = "none";
+        }
+        render();
+    </script>
+</body>
+</html>
