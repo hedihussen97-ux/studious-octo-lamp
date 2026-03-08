@@ -1,157 +1,4 @@
-<!DOCTYPE html>
-<html lang="ku" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brothers Cup 🏆</title>
-    <style>
-        :root { --p: #00d2ff; --bg: #0b0f19; --card: #161e2d; --white: #ffffff; }
-        body { font-family: 'Tahoma', sans-serif; background: var(--bg); color: var(--white); margin: 0; padding-bottom: 90px; }
-        .page { display: none; padding: 20px; animation: slideUp 0.4s ease; }
-        .active { display: block; }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .match-card { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid #2d3748; position: relative; }
-        .timer { font-size: 0.75rem; color: #facc15; text-align: center; margin-bottom: 12px; background: rgba(250, 204, 21, 0.1); padding: 5px; border-radius: 10px; font-weight: bold; }
-        .teams-grid { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; text-align: center; margin-bottom: 20px; }
-        .team img { width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
-        .team span { display: block; font-size: 0.85rem; font-weight: bold; margin-top: 8px; }
-        
-        .odds-row { display: flex; gap: 8px; }
-        .odd-btn { flex: 1; background: #1f2937; padding: 12px 2px; border-radius: 15px; cursor: pointer; border: 2px solid transparent; text-align: center; transition: 0.3s; }
-        .odd-btn.selected { border-color: var(--p); background: rgba(0, 210, 255, 0.1); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
-        .odd-val { display: block; font-size: 1.2rem; font-weight: bold; color: var(--p); }
-        .odd-label { font-size: 0.65rem; color: #94a3b8; }
-        .disabled { opacity: 0.4; pointer-events: none; filter: grayscale(0.5); }
-
-        .nav { position: fixed; bottom: 0; width: 100%; background: #111827; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #1f2937; z-index: 100; }
-        .nav-btn { color: #64748b; font-size: 0.85rem; cursor: pointer; transition: 0.3s; text-decoration: none; }
-        .nav-btn.active { color: var(--p); transform: translateY(-3px); font-weight: bold; }
-    </style>
-</head>
-<body>
-
-    <div id="home" class="page active">
-        <h2 style="color: var(--p); text-align: center; margin-top: 20px;">گرووپی برایان ⚽</h2>
-        <div class="match-card" style="text-align: center; margin-top: 20px;">
-            <div id="uAvatar" style="width:80px; height:80px; background:linear-gradient(45deg, var(--p), #3a7bd5); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; font-size:2rem; color:#000; font-weight:bold;">؟</div>
-            <h3 id="uNameDisplay" style="margin-bottom: 20px;">بەخێربێیت</h3>
-            <div style="background:#1f2937; padding:15px; border-radius:15px; margin-bottom: 20px;">
-                <span style="display:block; font-size:0.8rem; color:#94a3b8;">کۆی خاڵەکانت</span>
-                <span id="uPoints" style="font-size: 2.2rem; font-weight: bold; color: var(--p);">0</span>
-            </div>
-            <div id="setupForm">
-                <input type="text" id="nameInp" placeholder="ناوەکەت لێرە بنووسە..." style="width:85%; padding:12px; border-radius:10px; border:none; background:#1f2937; color:white; margin-bottom:10px; text-align: center;">
-                <button onclick="saveUser()" style="width:90%; padding:12px; background:var(--p); border:none; border-radius:10px; font-weight:bold; cursor:pointer; color: black;">تۆمارکردنی پڕۆفایل</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="predict" class="page">
-        <h2 style="color: var(--p); margin-bottom: 20px;">🎮 یارییەکانی ئەم هەفتەیە</h2>
-        <div id="matchList"></div>
-    </div>
-
-    <div id="ranks" class="page">
-        <h2 style="color: var(--p)">🏆 ڕیزبەندی گشتی</h2>
-        <div class="match-card" id="rankData" style="text-align: center; padding: 40px 10px;">
-            <p style="color: #94a3b8;">دوای تەواوبوونی یارییەکان ڕیزبەندی لێرە نوێ دەبێتەوە.</p>
-        </div>
-    </div>
-
-    <div class="nav">
-        <div class="nav-btn active" onclick="showPage('home', this)">👤 پڕۆفایل</div>
-        <div class="nav-btn" onclick="showPage('predict', this)">⚽ پێشبینی</div>
-        <div class="nav-btn" onclick="showPage('ranks', this)">📊 ڕیزبەندی</div>
-    </div>
-
-    <script>
-        // --- لیستی یارییەکانت لێرە جێگیر کراوە ---
-        const currentMatches = [
-            { id: "M1", t1: "وێستهام", logo1: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", t2: "برێنتفۆرد", logo2: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg", odds: {t1: 3, x: 2, t2: 2}, endTime: "2026-03-14T18:00:00" },
-            { id: "M2", t1: "ئینتەرمیلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", t2: "ئەیسی میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", odds: {t1: 2, x: 3, t2: 4}, endTime: "2026-03-14T22:45:00" },
-            { id: "M3", t1: "لیڤەرپووڵ", logo1: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", t2: "گەلەتەسەرای", logo2: "https://upload.wikimedia.org/wikipedia/commons/3/37/Galatasaray_Star_Logo.svg", odds: {t1: 2, x: 3, t2: 4}, endTime: "2026-03-15T20:45:00" },
-            { id: "M4", t1: "ئەتلەنتا", logo1: "https://upload.wikimedia.org/wikipedia/en/6/66/AtalantaBC.svg", t2: "بایرن میونشن", logo2: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_München_logo_%282017%29.svg", odds: {t1: 5, x: 3, t2: 2}, endTime: "2026-03-15T23:00:00" },
-            { id: "M5", t1: "ئاتلێتیکۆ مەدرید", logo1: "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg", t2: "تۆتنهام", logo2: "https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg", odds: {t1: 2, x: 4, t2: 5}, endTime: "2026-03-16T23:00:00" },
-            { id: "M6", t1: "بارسێلۆنا", logo1: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", t2: "نیوکاسڵ", logo2: "https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg", odds: {t1: 2, x: 3, t2: 4}, endTime: "2026-03-16T23:00:00" },
-            { id: "M7", t1: "لیڤەرکوزن", logo1: "https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg", t2: "ئارسناڵ", logo2: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg", odds: {t1: 6, x: 4, t2: 3}, endTime: "2026-03-17T22:45:00" },
-            { id: "M8", t1: "بۆدۆ گلیمت", logo1: "https://upload.wikimedia.org/wikipedia/en/0/0e/FK_Bodø_Glimt_logo.svg", t2: "سپۆرتینگ لیشبۆنە", logo2: "https://upload.wikimedia.org/wikipedia/en/e/e1/Sporting_Clube_de_Portugal_logo.svg", odds: {t1: 3, x: 2, t2: 4}, endTime: "2026-03-17T21:45:00" },
-            { id: "M9", t1: "پاریس", logo1: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg", t2: "چێڵسی", logo2: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg", odds: {t1: 3, x: 5, t2: 4}, endTime: "2026-03-18T23:00:00" },
-            { id: "M10", t1: "ڕیاڵ مەدرید", logo1: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", t2: "مانسیتی", logo2: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg", odds: {t1: 2, x: 5, t2: 3}, endTime: "2026-03-18T23:00:00" }
-        ];
-
-        function render() {
-            const list = document.getElementById('matchList');
-            list.innerHTML = "";
-            currentMatches.forEach(m => {
-                const saved = localStorage.getItem(`p_${m.id}`);
-                const expired = new Date() > new Date(m.endTime);
-                
-                list.innerHTML += `
-                    <div class="match-card ${ (saved || expired) ? 'disabled' : '' }">
-                        <div class="timer" id="t_${m.id}">${expired ? '❌ پێشبینی داخراوە' : '⏳ کات ماوە بۆ دەستپێکردن'}</div>
-                        <div class="teams-grid">
-                            <div class="team"><img src="${m.logo1}"><span>${m.t1}</span></div>
-                            <div style="font-weight:bold; color: #4a5568;">VS</div>
-                            <div class="team"><img src="${m.logo2}"><span>${m.t2}</span></div>
-                        </div>
-                        <div class="odds-row">
-                            <div class="odd-btn ${saved=='t1'?'selected':''}" onclick="makeP('${m.id}','t1')">
-                                <span class="odd-val">${m.odds.t1}</span><span class="odd-label">بردنەوەی ${m.t1}</span>
-                            </div>
-                            <div class="odd-btn ${saved=='x'?'selected':''}" onclick="makeP('${m.id}','x')">
-                                <span class="odd-val">${m.odds.x}</span><span class="odd-label">یەکسان</span>
-                            </div>
-                            <div class="odd-btn ${saved=='t2'?'selected':''}" onclick="makeP('${m.id}','t2')">
-                                <span class="odd-val">${m.odds.t2}</span><span class="odd-label">بردنەوەی ${m.t2}</span>
-                            </div>
-                        </div>
-                    </div>`;
-                if(!expired) startTimer(m.id, m.endTime);
-            });
-        }
-
-        function startTimer(id, time) {
-            const el = document.getElementById(`t_${id}`);
-            const itv = setInterval(() => {
-                const diff = new Date(time) - new Date();
-                if(diff <= 0) { el.innerText = "❌ پێشبینی داخراوە"; clearInterval(itv); return; }
-                const h = Math.floor(diff / 3600000);
-                const m = Math.floor((diff % 3600000) / 60000);
-                el.innerText = `⏳ کات ماوە: ${h} ک : ${m} خ`;
-            }, 1000);
-        }
-
-        window.makeP = (id, choice) => {
-            if(!localStorage.getItem('groupUser')) { alert("تکایە سەرەتا پڕۆفایل دروست بکە!"); return; }
-            localStorage.setItem(`p_${id}`, choice);
-            render();
-            alert("پێشبینییەکەت تۆمارکرا! ✅");
-        };
-
-        window.saveUser = () => {
-            const n = document.getElementById('nameInp').value;
-            if(n) { localStorage.setItem('groupUser', n); location.reload(); }
-        };
-
-        window.showPage = (id, btn) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        };
-
-        const u = localStorage.getItem('groupUser');
-        if(u) {
-            document.getElementById('uNameDisplay').innerText = u;
-            document.getElementById('uAvatar').innerText = u[0].toUpperCase();
-            document.getElementById('setupForm').style.display = "none";
-        }
-        render();
-    </script>
-</body>
-              </html>
-<!DOCTYPE html>
+                    <!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -165,15 +12,18 @@
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .match-card { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 15px; border: 1px solid #2d3748; }
-        .teams-grid { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; text-align: center; }
-        .team img { width: 45px; height: 45px; }
+        .stadium-name { text-align: center; font-size: 0.75rem; color: #8892b0; margin-bottom: 10px; }
+        .teams-grid { display: grid; grid-template-columns: 1fr 50px 1fr; align-items: center; text-align: center; }
+        .team img { width: 45px; height: 45px; object-fit: contain; margin-bottom: 5px; }
+        .team span { display: block; font-size: 0.85rem; font-weight: bold; }
         .odds-row { display: flex; gap: 8px; margin-top: 15px; }
-        .odd-btn { flex: 1; background: #1f2937; padding: 10px; border-radius: 12px; cursor: pointer; border: 2px solid transparent; text-align: center; }
-        .odd-btn.selected { border-color: var(--p); background: rgba(0, 210, 255, 0.1); }
-        .nav { position: fixed; bottom: 0; width: 100%; background: #111827; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #1f2937; }
+        .odd-btn { flex: 1; background: #1f2937; padding: 8px; border-radius: 12px; cursor: pointer; border: 2px solid transparent; text-align: center; font-size: 0.75rem; transition: 0.3s; }
+        .odd-btn span { display: block; color: var(--p); font-weight: bold; margin-top: 2px; }
+        .odd-btn:hover { border-color: var(--p); background: #263345; }
+        .nav { position: fixed; bottom: 0; width: 100%; background: #111827; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #1f2937; z-index: 100; }
         .nav-btn { color: #64748b; cursor: pointer; font-size: 0.9rem; }
         .nav-btn.active { color: var(--p); font-weight: bold; }
-        .rank-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #2d3748; }
+        .rank-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #2d3748; background: #1a2234; margin-bottom: 5px; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -181,11 +31,11 @@
     <div id="home" class="page active">
         <h2 style="text-align:center; color:var(--p)">پڕۆفایلی یاریزان 👤</h2>
         <div class="match-card" style="text-align:center">
-            <div id="uAvatar" style="width:70px; height:70px; background:var(--p); border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#000">?</div>
+            <div style="width:70px; height:70px; background:var(--p); border-radius:50%; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#000">👤</div>
             <h3 id="uNameDisplay">میوان</h3>
             <div id="setupForm">
-                <input type="text" id="nameInp" placeholder="ناوەکەت بنووسە..." style="width:80%; padding:10px; border-radius:8px; border:none; background:#1f2937; color:white;">
-                <button onclick="saveUser()" style="width:85%; padding:10px; background:var(--p); border:none; border-radius:8px; margin-top:10px; font-weight:bold;">چوونە ژوورەوە</button>
+                <input type="text" id="nameInp" placeholder="ناوەکەت بنووسە..." style="width:80%; padding:10px; border-radius:8px; border:none; background:#1f2937; color:white; outline:none;">
+                <button onclick="saveUser()" style="width:85%; padding:10px; background:var(--p); border:none; border-radius:8px; margin-top:10px; font-weight:bold; cursor:pointer;">چوونە ژوورەوە</button>
             </div>
         </div>
     </div>
@@ -197,7 +47,7 @@
 
     <div id="ranks" class="page">
         <h2 style="color:var(--p)">📊 ڕیزبەندی گشتی</h2>
-        <div class="match-card" id="rankList">کەمێک چاوەڕێ بکە...</div>
+        <div id="rankList">خەریکە خاڵەکان ئەژمار دەکەم...</div>
     </div>
 
     <div class="nav">
@@ -207,78 +57,72 @@
     </div>
 
     <script>
-        // زانیارییەکانی Supabase - من لینکی پڕۆژەکەتم بۆ پڕکردیتەوە
         const SB_URL = "https://B4ommmZx0sf4iWMujMTtcQ.supabase.co"; 
         const SB_KEY = "sb_publishable_B4ommmZx0sf4iWMujMTtcQ_C3lap4ZI";
-        const supabase = supabase.createClient(SB_URL, SB_KEY);
+        const { createClient } = supabase;
+        const _supabase = createClient(SB_URL, SB_KEY);
 
         const matches = [
-            { id: "M1", t1: "وێستهام", logo1: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", t2: "برێنتفۆرد", logo2: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg", odds: {t1:3, x:2, t2:2} },
-            { id: "M2", t1: "ئینتەرمیلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", t2: "ئەیسی میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", odds: {t1:2, x:3, t2:4} }
-            // دەتوانیت یارییەکانی تریش لێرە زیاد بکەیت
+            { id: 1, t1: "ئینتەر میلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", t2: "ئەیسی میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", stadium: "San Siro", p1: 3, px: 3, p2: 4 },
+            { id: 2, t1: "وێستهام", logo1: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", t2: "برێنتفۆرد", logo2: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg", stadium: "London Stadium", p1: 3, px: 2, p2: 4 },
+            { id: 3, t1: "لیڤەرپووڵ", logo1: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", t2: "گەلەتەسەرای", logo2: "https://upload.wikimedia.org/wikipedia/commons/3/31/Galatasaray_Star_Logo.svg", stadium: "Rams Park", p1: 2, px: 3, p2: 4 },
+            { id: 4, t1: "بایرن میونشن", logo1: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg", t2: "ئەتڵانتا", logo2: "https://upload.wikimedia.org/wikipedia/en/6/66/Atalanta_BC_Logo.svg", stadium: "Gewiss Stadium", p1: 2, px: 3, p2: 5 },
+            { id: 5, t1: "ئەتلەتیکۆ مەدرید", logo1: "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg", t2: "تۆتنهام", logo2: "https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg", stadium: "Metropolitano", p1: 3, px: 4, p2: 5 },
+            { id: 6, t1: "بارسێلۆنا", logo1: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", t2: "نیوکاسڵ", logo2: "https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg", stadium: "St James' Park", p1: 3, px: 2, p2: 4 },
+            { id: 7, t1: "ئارسناڵ", logo1: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg", t2: "لیڤەرکوزن", logo2: "https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg", stadium: "BayArena", p1: 2, px: 3, p2: 5 },
+            { id: 8, t1: "بۆدۆگلیمت", logo1: "https://upload.wikimedia.org/wikipedia/en/e/e3/FK_Bod%C3%B8_Glimt_logo.svg", t2: "لیشبۆنە", logo2: "https://upload.wikimedia.org/wikipedia/en/3/3e/Sporting_CP_logo.svg", stadium: "Aspmyra Stadion", p1: 3, px: 2, p2: 4 },
+            { id: 9, t1: "پاریس", logo1: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg", t2: "چێڵسی", logo2: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg", stadium: "Parc des Princes", p1: 3, px: 4, p2: 5 },
+            { id: 10, t1: "مان سیتی", logo1: "https://upload.wikimedia.org/wikipedia/en/eb/eb/Manchester_City_FC_badge.svg", t2: "ڕیاڵ مەدرید", logo2: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", stadium: "Santiago Bernabéu", p1: 3, px: 2, p2: 4 }
         ];
+
+        function renderMatches() {
+            const list = document.getElementById('matchList');
+            list.innerHTML = matches.map(m => `
+                <div class="match-card">
+                    <div class="stadium-name">🏟️ ${m.stadium}</div>
+                    <div class="teams-grid">
+                        <div class="team"><img src="${m.logo1}"><span>${m.t1}</span></div>
+                        <div style="font-weight:bold; color:var(--p)">VS</div>
+                        <div class="team"><img src="${m.logo2}"><span>${m.t2}</span></div>
+                    </div>
+                    <div class="odds-row">
+                        <div class="odd-btn" onclick="makeP('${m.id}','t1')">بردنەوەی ١<span>${m.p1} خاڵ</span></div>
+                        <div class="odd-btn" onclick="makeP('${m.id}','x')">یەکسان<span>${m.px} خاڵ</span></div>
+                        <div class="odd-btn" onclick="makeP('${m.id}','t2')">بردنەوەی ٢<span>${m.p2} خاڵ</span></div>
+                    </div>
+                </div>`).join('');
+        }
 
         async function saveUser() {
             const name = document.getElementById('nameInp').value;
-            if(name) {
-                localStorage.setItem('user', name);
-                location.reload();
-            }
+            if(name) { localStorage.setItem('user', name); location.reload(); }
         }
 
         async function makeP(mId, choice) {
             const user = localStorage.getItem('user');
             if(!user) return alert("سەرەتا ناوەکەت بنووسە!");
-
-            const { data, error } = await supabase
-                .from('predictions')
-                .upsert({ user_name: user, match_id: mId, prediction: choice }, { onConflict: 'user_name,match_id' });
-
-            if(error) alert("هەڵەیەک ڕوویدا!");
-            else { alert("تۆمارکرا! ✅"); render(); }
+            const { error } = await _supabase.from('predictions').upsert({ user_name: user, match_id: mId, prediction: choice }, { onConflict: 'user_name,match_id' });
+            if(error) alert("هەڵە ڕوویدا!"); else alert("پێشبینییەکەت تۆمارکرا! ✅");
         }
 
-        function render() {
-            const list = document.getElementById('matchList');
-            list.innerHTML = "";
-            matches.forEach(m => {
-                list.innerHTML += `
-                    <div class="match-card">
-                        <div class="teams-grid">
-                            <div class="team"><img src="${m.logo1}"><span>${m.t1}</span></div>
-                            <div>VS</div>
-                            <div class="team"><img src="${m.logo2}"><span>${m.t2}</span></div>
-                        </div>
-                        <div class="odds-row">
-                            <div class="odd-btn" onclick="makeP('${m.id}','t1')">بردنەوەی ١</div>
-                            <div class="odd-btn" onclick="makeP('${m.id}','x')">یەکسان</div>
-                            <div class="odd-btn" onclick="makeP('${m.id}','t2')">بردنەوەی ٢</div>
-                        </div>
-                    </div>`;
-            });
-        }
-
+        // لێرەدا دەتوانیت دواتر ئەنجامی کۆتایی یارییەکان دابنێیت بۆ ئەوەی خاڵەکان ئەژمار بکرێن
         async function loadRanks() {
-            const { data, error } = await supabase.from('predictions').select('*');
-            if(data) {
-                const rList = document.getElementById('rankList');
-                rList.innerHTML = "لێرەدا ناوی برادەران و پێشبینییەکانیان دەبینیت...";
-                // لێرە دەتوانیت کۆدی حسابکردنی خاڵەکان دابنێیت
-            }
+            const rList = document.getElementById('rankList');
+            rList.innerHTML = "بەشی ڕیزبەندی دوای تەواوبوونی یارییەکان چالاک دەبێت 📊";
         }
 
         window.showPage = (id, btn) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+            if(id === 'predict') renderMatches();
             if(id === 'ranks') loadRanks();
         };
 
         const u = localStorage.getItem('user');
-        if(u) {
-            document.getElementById('uNameDisplay').innerText = u;
-            document.getElementById('setupForm').style.display = "none";
-        }
-        render();
+        if(u) { document.getElementById('uNameDisplay').innerText = u; document.getElementById('setupForm').style.display = "none"; }
+        renderMatches();
     </script>
 </body>
-</html>
+                                                                                </html>
