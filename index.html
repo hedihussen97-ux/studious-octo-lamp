@@ -98,11 +98,26 @@
             if(name) { localStorage.setItem('user', name); location.reload(); }
         }
 
-        async function makeP(mId, choice) {
-            const user = localStorage.getItem('user');
-            if(!user) return alert("سەرەتا ناوەکەت بنووسە!");
-            const { error } = await _supabase.from('predictions').upsert({ user_name: user, match_id: mId, prediction: choice }, { onConflict: 'user_name,match_id' });
-            if(error) alert("هەڵە ڕوویدا!"); else alert("پێشبینییەکەت تۆمارکرا! ✅");
+      // ۳. تۆمارکردنی پێشبینی لە Supabase
+async function makeP(mId, choice) {
+    const user = localStorage.getItem('user');
+    if(!user) return alert("سەرەتا پڕۆفایلەکەت پڕ بکەرەوە!");
+
+    const { error } = await _supabase
+        .from('predictions') // دڵنیابەرەوە لە Supabase بە پیتی بچووک نووسیوتە
+        .upsert({ 
+            user_name: user, 
+            match_id: mId, 
+            prediction: choice 
+        }, { onConflict: 'user_name,match_id' });
+
+    if(error) {
+        console.error("Error details:", error);
+        alert("هەڵەیەک ڕوویدا: " + error.message);
+    } else {
+        alert("پێشبینییەکەت تۆمارکرا! ✅");
+    }
+}
         }
 
         // لێرەدا دەتوانیت دواتر ئەنجامی کۆتایی یارییەکان دابنێیت بۆ ئەوەی خاڵەکان ئەژمار بکرێن
