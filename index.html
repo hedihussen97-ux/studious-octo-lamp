@@ -97,8 +97,7 @@
             const name = document.getElementById('nameInp').value;
             if(name) { localStorage.setItem('user', name); location.reload(); }
         }
-
-      // ۳. تۆمارکردنی پێشبینی لە Supabase
+      
 async function makeP(mId, choice) {
     const user = localStorage.getItem('user');
     if(!user) return alert("سەرەتا پڕۆفایلەکەت پڕ بکەرەوە!");
