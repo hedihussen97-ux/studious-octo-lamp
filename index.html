@@ -49,19 +49,16 @@
     </div>
 
     <script>
-        // ١. چاککردنی URL بەپێی وێنەی ناردراو
+        // زانیارییە نوێیەکانت لێرە جێگیر کراون
         const SB_URL = "https://wlzozadahonjvcodzokyu.supabase.co"; 
-        
-        // ٢. لێرە کلیلە درێژەکەی پڕۆژەکەت دابنێ (لە بەشی API Settings وەری بگرە)
         const SB_KEY = "sb_publishable_B4ommmZx0sf4iWMujMTtcQ_C3lap4ZI";
 
         const { createClient } = supabase;
         const _supabase = createClient(SB_URL, SB_KEY);
 
-        // لیستەی یارییەکان
         const matches = [
             { id: 1, t1: "ئەیسی میلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", t2: "ئینتەر میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", stadium: "San Siro 🏟️", p1: 4, px: 2, p2: 3 },
-            { id: 2, t1: "لیڤەرپوول", logo1: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", t2: "گالەتەسەرای", logo2: "https://upload.wikimedia.org/wikipedia/commons/3/37/Galatasaray_Star_Logo.png", stadium: "Rams Park 🏟️", p1: 3, px: 2, p2: 4 }
+            { id: 2, t1: "لیڤەرپوول", logo1: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", t2: "ڕیاڵ مەدرید", logo2: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", stadium: "Anfield 🏟️", p1: 3, px: 2, p2: 4 }
         ];
 
         function renderMatches() {
@@ -87,16 +84,14 @@
             if(name.trim()) { 
                 localStorage.setItem('user', name); 
                 updateProfileUI();
-                alert("بەخێرهاتی " + name);
             }
         }
 
         async function makeP(mId, choice) {
             const user = localStorage.getItem('user');
-            if(!user) return alert("سەرەتا لە بەشی پڕۆفایل ناوەکەت بنووسە!");
+            if(!user) return alert("سەرەتا ناوەکەت تۆمار بکە!");
 
             try {
-                // ناردنی داتا بۆ خشتەی Predictions
                 const { error } = await _supabase
                     .from('Predictions') 
                     .upsert({ 
@@ -106,20 +101,17 @@
                     }, { onConflict: 'user_name,match_id' });
 
                 if(error) throw error;
-                alert("پێشبینییەکەت بە سەرکەوتوویی تۆمارکرا! ✅");
+                alert("سەرکەوتوو بوو! ✅");
             } catch (err) {
-                console.error(err);
-                alert("هەڵە لە پەیوەندی: دڵنیابەرەوە لە ڕاستی API Key و ئینتەرنێتەکەت.");
+                alert("هەڵە: " + err.message);
             }
         }
 
         function showPage(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            
             document.getElementById(id).classList.add('active');
             document.getElementById('nav-' + id).classList.add('active');
-            
             if(id === 'predict') renderMatches();
         }
 
@@ -131,9 +123,8 @@
             }
         }
 
-        // دەسپێکردنی بەرنامە
         updateProfileUI();
         renderMatches();
     </script>
 </body>
-</html>
+</html> 
