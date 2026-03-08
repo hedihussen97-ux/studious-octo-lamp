@@ -47,7 +47,7 @@
 
     <div id="ranks" class="page">
         <h2 style="color:var(--p)">📊 ڕیزبەندی گشتی</h2>
-        <div id="rankList">خەریکە خاڵەکان ئەژمار دەکەم...</div>
+        <div id="rankList">خەریکە ئەژمار دەکەم...</div>
     </div>
 
     <div class="nav">
@@ -57,34 +57,27 @@
     </div>
 
     <script>
-        // زانیارییەکانی سێرڤەر
+        // زانیارییەکانی بەستنەوە بە Supabase
         const SB_URL = "https://B4ommmZx0sf4iWMujMTtcQ.supabase.co"; 
         const SB_KEY = "sb_publishable_B4ommmZx0sf4iWMujMTtcQ_C3lap4ZI";
         const { createClient } = supabase;
         const _supabase = createClient(SB_URL, SB_KEY);
 
-        // لیستی یارییەکان
+        // لیستی یارییەکان (دەتوانیت لێرە لۆگۆ یان خاڵەکان بگۆڕیت)
         const matches = [
-            { id: 1, t1: "ئینتەر میلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", t2: "ئەیسی میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", stadium: "San Siro", p1: 3, px: 3, p2: 4 },
+            { id: 1, t1: "ئەیسی میلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", t2: "ئینتەر میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", stadium: "San Siro 🏟️", p1: 4, px: 2, p2: 3 },
             { id: 2, t1: "وێستهام", logo1: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", t2: "برێنتفۆرد", logo2: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg", stadium: "London Stadium", p1: 3, px: 2, p2: 4 },
-            { id: 3, t1: "لیڤەرپووڵ", logo1: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", t2: "گەلەتەسەرای", logo2: "https://upload.wikimedia.org/wikipedia/commons/3/31/Galatasaray_Star_Logo.svg", stadium: "Rams Park", p1: 2, px: 3, p2: 4 },
-            { id: 4, t1: "بایرن میونشن", logo1: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg", t2: "ئەتڵانتا", logo2: "https://upload.wikimedia.org/wikipedia/en/6/66/Atalanta_BC_Logo.svg", stadium: "Gewiss Stadium", p1: 2, px: 3, p2: 5 },
-            { id: 5, t1: "ئەتلەتیکۆ مەدرید", logo1: "https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg", t2: "تۆتنهام", logo2: "https://upload.wikimedia.org/wikipedia/en/b/b4/Tottenham_Hotspur.svg", stadium: "Metropolitano", p1: 3, px: 4, p2: 5 },
-            { id: 6, t1: "بارسێلۆنا", logo1: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg", t2: "نیوکاسڵ", logo2: "https://upload.wikimedia.org/wikipedia/en/5/56/Newcastle_United_Logo.svg", stadium: "St James' Park", p1: 3, px: 2, p2: 4 },
-            { id: 7, t1: "ئارسناڵ", logo1: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg", t2: "لیڤەرکوزن", logo2: "https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg", stadium: "BayArena", p1: 2, px: 3, p2: 5 },
-            { id: 8, t1: "بۆدۆگلیمت", logo1: "https://upload.wikimedia.org/wikipedia/en/e/e3/FK_Bod%C3%B8_Glimt_logo.svg", t2: "لیشبۆنە", logo2: "https://upload.wikimedia.org/wikipedia/en/3/3e/Sporting_CP_logo.svg", stadium: "Aspmyra Stadion", p1: 3, px: 2, p2: 4 },
-            { id: 9, t1: "پاریس", logo1: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg", t2: "چێڵسی", logo2: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg", stadium: "Parc des Princes", p1: 3, px: 4, p2: 5 },
-            { id: 10, t1: "مان سیتی", logo1: "https://upload.wikimedia.org/wikipedia/en/eb/eb/Manchester_City_FC_badge.svg", t2: "ڕیاڵ مەدرید", logo2: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", stadium: "Santiago Bernabéu", p1: 3, px: 2, p2: 4 }
+            { id: 3, t1: "گەلەتەسەرای", logo1: "https://upload.wikimedia.org/wikipedia/commons/3/31/Galatasaray_Star_Logo.svg", t2: "لیڤەرپووڵ", logo2: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", stadium: "Rams Park 🏟️", p1: 4, px: 3, p2: 2 }
         ];
 
-        // لێرە ئەنجامی یارییەکان دادەنێیت دواتر (بۆ نموونە "t1" بۆ بردنەوەی یەکەمیان)
-        const results = { "1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": "" };
+        // لێرە ئەنجامەکان جێگیر دەکرێن بۆ ئەژمارکردنی خاڵی ڕیزبەندی
+        const results = { "1": "", "2": "", "3": "" };
 
         function renderMatches() {
             const list = document.getElementById('matchList');
             list.innerHTML = matches.map(m => `
                 <div class="match-card">
-                    <div class="stadium-name">🏟️ ${m.stadium}</div>
+                    <div class="stadium-name">${m.stadium}</div>
                     <div class="teams-grid">
                         <div class="team"><img src="${m.logo1}"><span>${m.t1}</span></div>
                         <div style="font-weight:bold; color:var(--p)">VS</div>
@@ -103,23 +96,31 @@
             if(name) { localStorage.setItem('user', name); location.reload(); }
         }
 
+        // فەنکشنی ناردنی پێشبینی بۆ داتابەیس
         async function makeP(mId, choice) {
             const user = localStorage.getItem('user');
-            if(!user) return alert("سەرەتا ناوەکەت تۆمار بکە!");
-            
-            const { error } = await _supabase
-                .from('predictions')
-                .upsert({ user_name: user, match_id: mId, prediction: choice }, { onConflict: 'user_name,match_id' });
+            if(!user) return alert("سەرەتا پڕۆفایلەکەت پڕ بکەرەوە!");
 
-            if(error) alert("هەڵە ڕوویدا: " + error.message);
-            else alert("پێشبینییەکەت تۆمارکرا! ✅");
+            const { error } = await _supabase
+                .from('Predictions') // ناوی خشتەکە وەک ئەوەی لای تۆیە
+                .upsert({ 
+                    user_name: user, 
+                    match_id: mId, 
+                    prediction: choice 
+                }, { onConflict: 'user_name,match_id' });
+
+            if(error) {
+                alert("هەڵە: " + error.message);
+            } else {
+                alert("پێشبینییەکەت تۆمارکرا! ✅");
+            }
         }
 
         async function loadRanks() {
             const rList = document.getElementById('rankList');
-            rList.innerHTML = "خەریکە خاڵەکان کۆدەکەمەوە... 📈";
+            rList.innerHTML = "خەریکە ئەژمار دەکەم... 📈";
             try {
-                const { data: preds, error } = await _supabase.from('predictions').select('*');
+                const { data: preds, error } = await _supabase.from('Predictions').select('*');
                 if (error) throw error;
                 let scores = {};
                 preds.forEach(p => {
@@ -149,4 +150,4 @@
         renderMatches();
     </script>
 </body>
-</html>
+</html> 
