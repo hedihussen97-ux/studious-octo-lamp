@@ -1,4 +1,4 @@
-                    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -57,11 +57,13 @@
     </div>
 
     <script>
+        // زانیارییەکانی سێرڤەر
         const SB_URL = "https://B4ommmZx0sf4iWMujMTtcQ.supabase.co"; 
         const SB_KEY = "sb_publishable_B4ommmZx0sf4iWMujMTtcQ_C3lap4ZI";
         const { createClient } = supabase;
         const _supabase = createClient(SB_URL, SB_KEY);
 
+        // لیستی یارییەکان
         const matches = [
             { id: 1, t1: "ئینتەر میلان", logo1: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", t2: "ئەیسی میلان", logo2: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", stadium: "San Siro", p1: 3, px: 3, p2: 4 },
             { id: 2, t1: "وێستهام", logo1: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", t2: "برێنتفۆرد", logo2: "https://upload.wikimedia.org/wikipedia/en/2/2a/Brentford_FC_crest.svg", stadium: "London Stadium", p1: 3, px: 2, p2: 4 },
@@ -74,6 +76,9 @@
             { id: 9, t1: "پاریس", logo1: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg", t2: "چێڵسی", logo2: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg", stadium: "Parc des Princes", p1: 3, px: 4, p2: 5 },
             { id: 10, t1: "مان سیتی", logo1: "https://upload.wikimedia.org/wikipedia/en/eb/eb/Manchester_City_FC_badge.svg", t2: "ڕیاڵ مەدرید", logo2: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg", stadium: "Santiago Bernabéu", p1: 3, px: 2, p2: 4 }
         ];
+
+        // لێرە ئەنجامی یارییەکان دادەنێیت دواتر (بۆ نموونە "t1" بۆ بردنەوەی یەکەمیان)
+        const results = { "1": "", "2": "", "3": "", "4": "", "5": "", "6": "", "7": "", "8": "", "9": "", "10": "" };
 
         function renderMatches() {
             const list = document.getElementById('matchList');
@@ -97,32 +102,37 @@
             const name = document.getElementById('nameInp').value;
             if(name) { localStorage.setItem('user', name); location.reload(); }
         }
-      
-async function makeP(mId, choice) {
-    const user = localStorage.getItem('user');
-    if(!user) return alert("سەرەتا پڕۆفایلەکەت پڕ بکەرەوە!");
 
-    const { error } = await _supabase
-        .from('predictions') // دڵنیابەرەوە لە Supabase بە پیتی بچووک نووسیوتە
-        .upsert({ 
-            user_name: user, 
-            match_id: mId, 
-            prediction: choice 
-        }, { onConflict: 'user_name,match_id' });
+        async function makeP(mId, choice) {
+            const user = localStorage.getItem('user');
+            if(!user) return alert("سەرەتا ناوەکەت تۆمار بکە!");
+            
+            const { error } = await _supabase
+                .from('predictions')
+                .upsert({ user_name: user, match_id: mId, prediction: choice }, { onConflict: 'user_name,match_id' });
 
-    if(error) {
-        console.error("Error details:", error);
-        alert("هەڵەیەک ڕوویدا: " + error.message);
-    } else {
-        alert("پێشبینییەکەت تۆمارکرا! ✅");
-    }
-}
+            if(error) alert("هەڵە ڕوویدا: " + error.message);
+            else alert("پێشبینییەکەت تۆمارکرا! ✅");
         }
 
-        // لێرەدا دەتوانیت دواتر ئەنجامی کۆتایی یارییەکان دابنێیت بۆ ئەوەی خاڵەکان ئەژمار بکرێن
         async function loadRanks() {
             const rList = document.getElementById('rankList');
-            rList.innerHTML = "بەشی ڕیزبەندی دوای تەواوبوونی یارییەکان چالاک دەبێت 📊";
+            rList.innerHTML = "خەریکە خاڵەکان کۆدەکەمەوە... 📈";
+            try {
+                const { data: preds, error } = await _supabase.from('predictions').select('*');
+                if (error) throw error;
+                let scores = {};
+                preds.forEach(p => {
+                    const matchOutcome = results[p.match_id];
+                    if (matchOutcome && p.prediction === matchOutcome) {
+                        const mData = matches.find(m => m.id == p.match_id);
+                        let pts = (matchOutcome === "t1") ? mData.p1 : (matchOutcome === "x" ? mData.px : mData.p2);
+                        scores[p.user_name] = (scores[p.user_name] || 0) + pts;
+                    } else if (!scores[p.user_name]) { scores[p.user_name] = 0; }
+                });
+                const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+                rList.innerHTML = sorted.map(([n, s], i) => `<div class="rank-item"><span>${i+1}. ${n}</span><span style="color:var(--p);font-weight:bold;">${s} خاڵ</span></div>`).join('') || "هیچ خاڵێک نییە.";
+            } catch (e) { rList.innerHTML = "هەڵە لە بارکردنی ڕیزبەندی."; }
         }
 
         window.showPage = (id, btn) => {
@@ -139,4 +149,4 @@ async function makeP(mId, choice) {
         renderMatches();
     </script>
 </body>
-                                                                                </html>
+</html>
